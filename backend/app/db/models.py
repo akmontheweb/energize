@@ -64,7 +64,7 @@ class User(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     keycloak_sub = Column(String(255), unique=True, nullable=False, index=True)
     email = Column(String(255), nullable=False)
-    role = Column(Enum(UserRole), nullable=False, default=UserRole.client)
+    role = Column(Enum(UserRole, name="user_role"), nullable=False, default=UserRole.client)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
     coach_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -89,7 +89,7 @@ class CoachingSession(Base):
     client_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     coach_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     tenant_id = Column(UUID(as_uuid=True), ForeignKey("tenants.id"), nullable=False)
-    status = Column(Enum(SessionStatus), nullable=False, default=SessionStatus.active)
+    status = Column(Enum(SessionStatus, name="session_status"), nullable=False, default=SessionStatus.active)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -109,7 +109,7 @@ class Message(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     session_id = Column(UUID(as_uuid=True), ForeignKey("coaching_sessions.id"), nullable=False)
-    role = Column(Enum(MessageRole), nullable=False)
+    role = Column(Enum(MessageRole, name="message_role"), nullable=False)
     content = Column(Text, nullable=False)
     metadata_ = Column("metadata", JSONB, nullable=True, default=dict)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
