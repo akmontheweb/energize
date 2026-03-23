@@ -16,7 +16,7 @@ from mcp.server.fastmcp import FastMCP
 import os
 
 from mcp_server.resources import prompts as _prompts
-from mcp_server.tools import chroma as _ch
+from mcp_server.tools import pgvector as _pv
 from mcp_server.tools import postgres as _pg
 
 mcp = FastMCP(
@@ -91,15 +91,15 @@ mcp.tool()(_pg.pg_list_active_coach_documents)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# Tools — ChromaDB
+# Tools — pgvector
 # ═══════════════════════════════════════════════════════════════════════════════
 
-mcp.tool()(_ch.chroma_query_methodology_docs)
-mcp.tool()(_ch.chroma_ingest_methodology_docs)
-mcp.tool()(_ch.chroma_list_methodology_docs)
-mcp.tool()(_ch.chroma_delete_methodology_doc)
+mcp.tool()(_pv.pgvector_query_methodology_docs)
+mcp.tool()(_pv.pgvector_ingest_methodology_docs)
+mcp.tool()(_pv.pgvector_list_methodology_docs)
+mcp.tool()(_pv.pgvector_delete_methodology_doc)
 
-mcp.tool()(_ch.chroma_query_coach_docs)
-mcp.tool()(_ch.chroma_ingest_coach_docs)
-mcp.tool()(_ch.chroma_list_coach_docs)
-mcp.tool()(_ch.chroma_delete_coach_doc)
+mcp.tool()(_pv.pgvector_query_coach_docs)
+mcp.tool()(_pv.pgvector_ingest_coach_docs)
+mcp.tool()(_pv.pgvector_list_coach_docs)
+mcp.tool()(_pv.pgvector_delete_coach_doc)

@@ -12,8 +12,6 @@ class Settings(BaseSettings):
     KEYCLOAK_CLIENT_SECRET: str = "CHANGE_ME_IN_PRODUCTION"
     KEYCLOAK_ADMIN: str = "admin"
     KEYCLOAK_ADMIN_PASSWORD: str = "admin"
-    CHROMA_HOST: str = "chromadb"
-    CHROMA_PORT: int = 8000
     SECRET_KEY: str = "change-me-in-production"
     LOG_LEVEL: str = "INFO"
 
@@ -28,6 +26,13 @@ class Settings(BaseSettings):
 
     # Deprecated — kept for backward compatibility. Migrate to LLM_API_KEY.
     OPENAI_API_KEY: str = ""
+
+    # ── Embeddings (pgvector) ─────────────────────────────────────────────────
+    # Auto-resolved from LLM_PROVIDER when left blank.
+    EMBEDDING_MODEL: str = ""
+    # Must match the embedding model's output dimension.
+    # openai/azure: 1536  |  google_genai: 768  |  mistralai: 1024
+    EMBEDDING_DIMENSIONS: int = 1536
 
     # ── MCP Server ────────────────────────────────────────────────────────────
     MCP_SERVER_URL: str = "http://mcp-server:9000/sse"

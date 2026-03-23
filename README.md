@@ -29,7 +29,7 @@ An end-to-end application for the Energize coaching company, featuring a real-ti
                   └──┬──────────┬──┘
                      │          │
           ┌──────────▼─┐    ┌───▼──────────┐    ┌─────────────┐
-          │ PostgreSQL  │    │  ChromaDB    │    │  OpenAI API │
+          │ PostgreSQL  │    │  pgvector    │    │  OpenAI API │
           │ (sessions,  │    │  (vector     │    │  (LLM       │
           │  messages)  │    │   search)    │    │   engine)   │
           └─────────────┘    └──────────────┘    └─────────────┘
@@ -46,8 +46,8 @@ An end-to-end application for the Energize coaching company, featuring a real-ti
 | Backend API | Python 3.11, FastAPI, WebSockets |
 | Agent Orchestration | LangGraph, LangChain |
 | LLM | OpenAI GPT-4o |
-| Relational DB | PostgreSQL 16 |
-| Vector DB | ChromaDB |
+| Relational DB | PostgreSQL 16 + pgvector |
+| Vector Search | pgvector (embedded in PostgreSQL) |
 | Containerisation | Docker, Docker Compose |
 | Orchestration | Kubernetes (k8s manifests included) |
 
@@ -212,7 +212,6 @@ cd infrastructure/kubernetes
 kubectl apply -f namespace.yaml
 kubectl apply -f secrets.yaml     # Update with real base64 secrets first!
 kubectl apply -f postgres/
-kubectl apply -f chromadb/
 kubectl apply -f keycloak/
 kubectl apply -f backend/
 kubectl apply -f frontend/

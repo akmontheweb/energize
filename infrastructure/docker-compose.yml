@@ -4,13 +4,12 @@ networks:
 
 volumes:
   postgres-data:
-  chroma-data:
   keycloak-data:
 
 services:
-  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  # ── PostgreSQL + pgvector ───────────────────────────────────────────────────
   postgres:
-    image: postgres:16
+    image: pgvector/pgvector:pg16
     container_name: energize-postgres
     restart: unless-stopped
     networks:
@@ -29,20 +28,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-
-  chromadb:
-    image: chromadb/chroma:0.5.23
-    container_name: energize-chromadb
-    restart: unless-stopped
-    networks:
-      - energize-net
-    ports:
-      - "${CHROMA_PORT}:8000"
-    volumes:
-      - chroma-data:/chroma/chroma
-    environment:
-      IS_PERSISTENT: "TRUE"
-      ANONYMIZED_TELEMETRY: "FALSE"
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0.4
@@ -93,16 +78,12 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      CHROMA_HOST: chromadb
-      CHROMA_PORT: "${CHROMA_PORT}"
       KEYCLOAK_URL: http://keycloak:8080
       KEYCLOAK_REALM: ${KEYCLOAK_REALM}
       MCP_SERVER_URL: http://mcp-server:${MCP_PORT}/sse
     depends_on:
       postgres:
         condition: service_healthy
-      chromadb:
-        condition: service_started
       keycloak:
         condition: service_healthy
       mcp-server:
@@ -129,14 +110,10 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      CHROMA_HOST: chromadb
-      CHROMA_PORT: "${CHROMA_PORT}"
       MCP_PORT: "${MCP_PORT}"
     depends_on:
       postgres:
         condition: service_healthy
-      chromadb:
-        condition: service_started
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost', ${MCP_PORT})); s.close()\""]
       interval: 15s

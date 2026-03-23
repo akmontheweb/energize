@@ -16,7 +16,7 @@ from mcp_server.resources.prompts import (
     get_intake_extraction_prompt,
     get_reflection_summary_prompt,
 )
-from mcp_server.tools.chroma import chroma_query_coach_docs, chroma_query_methodology_docs
+from mcp_server.tools.pgvector import pgvector_query_coach_docs, pgvector_query_methodology_docs
 
 logger = logging.getLogger(__name__)
 
@@ -209,7 +209,7 @@ async def retrieval_node(state: CoachingState) -> Dict[str, Any]:
             # Coach-client conversation docs queried first (higher contextual priority)
             coach_docs: List[str] = []
             if client_id:
-                coach_docs = chroma_query_coach_docs(
+                coach_docs = pgvector_query_coach_docs(
                     tenant_id=tenant_id,
                     client_id=client_id,
                     query=query,
@@ -217,7 +217,7 @@ async def retrieval_node(state: CoachingState) -> Dict[str, Any]:
                 )
 
             # Methodology docs uploaded by admin
-            method_docs = chroma_query_methodology_docs(
+            method_docs = pgvector_query_methodology_docs(
                 tenant_id=tenant_id, query=query, n_results=2
             )
 

@@ -11,14 +11,14 @@ from pydantic import BaseModel
 
 from app.api.deps import get_current_user, get_tenant_id
 from app.db.models import User, UserRole
-from mcp_server.tools.chroma import (
-    chroma_delete_coach_doc,
-    chroma_delete_methodology_doc,
-    chroma_ingest_coach_docs,
-    chroma_ingest_methodology_docs,
-    chroma_list_coach_docs,
-    chroma_list_methodology_docs,
-    chroma_query_coach_docs,
+from mcp_server.tools.pgvector import (
+    pgvector_delete_coach_doc,
+    pgvector_delete_methodology_doc,
+    pgvector_ingest_coach_docs,
+    pgvector_ingest_methodology_docs,
+    pgvector_list_coach_docs,
+    pgvector_list_methodology_docs,
+    pgvector_query_coach_docs,
 )
 from mcp_server.tools.postgres import (
     pg_archive_coach_document,
@@ -195,7 +195,7 @@ async def ingest_documents_endpoint(
         raise HTTPException(status_code=400, detail="Number of IDs must match number of documents")
 
     try:
-        chroma_ingest_methodology_docs(
+        pgvector_ingest_methodology_docs(
             tenant_id=tenant_id,
             documents=payload.documents,
             ids=doc_ids,
@@ -251,7 +251,7 @@ async def upload_document(
     ]
 
     try:
-        chroma_ingest_methodology_docs(
+        pgvector_ingest_methodology_docs(
             tenant_id=tenant_id, documents=chunks, ids=chunk_ids, metadatas=metadatas
         )
     except Exception:
@@ -292,7 +292,7 @@ async def list_uploaded_documents(
     """List all methodology documents for this tenant. Admin only."""
     _require_admin(current_user)
     try:
-        docs = chroma_list_methodology_docs(tenant_id=tenant_id)
+        docs = pgvector_list_methodology_docs(tenant_id=tenant_id)
     except Exception:
         logger.exception(
             "Document listing failed tenant_id=%s user_id=%s", tenant_id, current_user.id
@@ -351,7 +351,7 @@ async def replace_methodology_document(
         raise HTTPException(status_code=400, detail="No text could be extracted from the file")
 
     try:
-        chroma_delete_methodology_doc(tenant_id=tenant_id, doc_id=doc_id)
+        pgvector_delete_methodology_doc(tenant_id=tenant_id, doc_id=doc_id)
     except Exception:
         logger.exception(
             "Replace: chroma delete failed tenant_id=%s doc_id=%s", tenant_id, doc_id
@@ -372,7 +372,7 @@ async def replace_methodology_document(
         for i in range(len(chunks))
     ]
     try:
-        chroma_ingest_methodology_docs(
+        pgvector_ingest_methodology_docs(
             tenant_id=tenant_id, documents=chunks, ids=chunk_ids, metadatas=metadatas
         )
     except Exception:
@@ -411,7 +411,7 @@ async def delete_uploaded_document(
     """Delete a methodology document from the RAG store. Admin only."""
     _require_admin(current_user)
     try:
-        deleted = chroma_delete_methodology_doc(tenant_id=tenant_id, doc_id=doc_id)
+        deleted = pgvector_delete_methodology_doc(tenant_id=tenant_id, doc_id=doc_id)
     except Exception:
         logger.exception(
             "Document delete failed tenant_id=%s doc_id=%s", tenant_id, doc_id
@@ -472,7 +472,7 @@ async def upload_coach_document(
     ]
 
     try:
-        chroma_ingest_coach_docs(
+        pgvector_ingest_coach_docs(
             tenant_id=tenant_id, documents=chunks, ids=chunk_ids, metadatas=metadatas
         )
     except Exception:
@@ -520,14 +520,14 @@ async def list_coach_uploaded_documents(
     _require_coach(current_user)
 
     client_filter_str = str(client_id) if client_id else None
-    chroma_docs = chroma_list_coach_docs(
+    pv_docs = pgvector_list_coach_docs(
         tenant_id=tenant_id,
         coach_id=str(current_user.id),
         client_id=client_filter_str,
     )
 
     # Resolve unique client emails in one batch call via MCP tool
-    client_ids_needed = list({d["client_id"] for d in chroma_docs if d.get("client_id")})
+    client_ids_needed = list({d["client_id"] for d in pv_docs if d.get("client_id")})
     client_emails: dict = {}
     if client_ids_needed:
         try:
@@ -545,7 +545,7 @@ async def list_coach_uploaded_documents(
             chunk_count=d["chunk_count"],
             uploaded_at=d.get("uploaded_at"),
         )
-        for d in chroma_docs
+        for d in pv_docs
     ]
     logger.info(
         "Listed coach docs coach_id=%s tenant_id=%s count=%s",
@@ -616,9 +616,9 @@ async def replace_coach_document(
     ]
 
     # Delete old Chroma chunks, ingest new ones
-    chroma_delete_coach_doc(tenant_id=tenant_id, doc_id=doc_id)
+    pgvector_delete_coach_doc(tenant_id=tenant_id, doc_id=doc_id)
     try:
-        chroma_ingest_coach_docs(
+        pgvector_ingest_coach_docs(
             tenant_id=tenant_id, documents=chunks, ids=chunk_ids, metadatas=metadatas
         )
     except Exception:
@@ -666,7 +666,7 @@ async def delete_coach_uploaded_document(
     _require_coach(current_user)
     await _get_active_coach_doc(current_user, doc_id)  # ownership check
 
-    chroma_delete_coach_doc(tenant_id=tenant_id, doc_id=doc_id)
+    pgvector_delete_coach_doc(tenant_id=tenant_id, doc_id=doc_id)
     await pg_archive_coach_document(doc_id=doc_id)
 
     logger.info(

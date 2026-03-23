@@ -44,10 +44,6 @@ spec:
                 secretKeyRef:
                   name: energize-secrets
                   key: KEYCLOAK_CLIENT_SECRET
-            - name: CHROMA_HOST
-              value: chromadb.energize.svc.cluster.local
-            - name: CHROMA_PORT
-              value: "8000"
             - name: KEYCLOAK_URL
               value: http://keycloak.energize.svc.cluster.local:8080
             - name: KEYCLOAK_REALM
