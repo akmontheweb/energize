@@ -57,7 +57,7 @@ An end-to-end application for the Energize coaching company, featuring a real-ti
 
 ```bash
 # 1. Clone and enter project
-cd c:\akhil\projects\ruma
+cd c:\akhil\projects\energize
 
 # 2. Copy and fill environment file
 cp infrastructure/.env.example infrastructure/.env
@@ -243,7 +243,7 @@ Update `infrastructure/kubernetes/secrets.yaml` with real base64-encoded values 
 ## Project Structure
 
 ```
-ruma/
+energize/
 ├── frontend/          # Next.js 14 app
 ├── backend/           # FastAPI + LangGraph app
 ├── infrastructure/    # Docker Compose + Kubernetes + Keycloak

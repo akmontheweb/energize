@@ -1,7 +1,7 @@
 import ast
 from pathlib import Path
 
-ROOT = Path(r"c:/akhil/projects/ruma")
+ROOT = Path(r"c:/akhil/projects/energize")
 
 TARGETS = [
     ROOT / "backend" / "app",
