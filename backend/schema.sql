@@ -146,7 +146,7 @@ CREATE INDEX IF NOT EXISTS idx_coach_documents_tenant_id           ON coach_docu
 CREATE INDEX IF NOT EXISTS idx_coach_documents_coach_client_active ON coach_documents (coach_id, client_id, tenant_id, is_active);
 
 COMMENT ON TABLE  coach_documents              IS 'Original files uploaded by coaches for specific clients (past-interaction notes).';
-COMMENT ON COLUMN coach_documents.doc_id       IS 'UUID string matching the ChromaDB coach-conversations metadata key.';
+COMMENT ON COLUMN coach_documents.doc_id       IS 'UUID string used as the vector chunk reference key in pgvector coach_document_chunks.';
 COMMENT ON COLUMN coach_documents.file_bytes   IS 'Raw uploaded file content for original-file download.';
 COMMENT ON COLUMN coach_documents.is_active    IS 'FALSE = archived (superseded by a hard-replace upload).';
 
@@ -170,7 +170,7 @@ CREATE INDEX IF NOT EXISTS idx_methodology_documents_tenant_id     ON methodolog
 CREATE INDEX IF NOT EXISTS idx_methodology_documents_tenant_active ON methodology_documents (tenant_id, is_active);
 
 COMMENT ON TABLE  methodology_documents              IS 'Original files uploaded by admins for methodology / coaching-procedure reference.';
-COMMENT ON COLUMN methodology_documents.doc_id       IS 'UUID string matching the ChromaDB tenant resources metadata key.';
+COMMENT ON COLUMN methodology_documents.doc_id       IS 'UUID string used as the vector chunk reference key in pgvector methodology_document_chunks.';
 COMMENT ON COLUMN methodology_documents.file_bytes   IS 'Raw uploaded file content for original-file download.';
 COMMENT ON COLUMN methodology_documents.is_active    IS 'FALSE = superseded row (replaced in-place via PUT).';
 

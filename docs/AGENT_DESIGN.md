@@ -19,7 +19,7 @@ The Energize coaching agent is implemented as a LangGraph `StateGraph`. It orche
                ▼                           ▼
         ┌─────────────┐           ┌─────────────────┐
         │ intake_node │           │  retrieval_node  │
-        │             │           │  (ChromaDB RAG)  │
+        │             │           │  (pgvector RAG)  │
         └──────┬──────┘           └────────┬─────────┘
                │                           │
                └─────────┬─────────────────┘
@@ -57,7 +57,7 @@ class CoachingState(TypedDict):
     tenant_id: str           # tenant isolation key
     client_goals: List[str]  # extracted goals from intake
     phase: str               # "intake" | "coaching" | "reflection" | "escalated"
-    retrieved_resources: List[str]  # relevant doc excerpts from ChromaDB
+    retrieved_resources: List[str]  # relevant doc excerpts from pgvector
     needs_escalation: bool   # flag set by coaching_node keyword scan
 ```
 
@@ -86,16 +86,15 @@ Never mention you are an AI.
 ### `retrieval_node`
 **Triggered when**: Entering the coaching phase (before `coaching_node`)
 
-**Responsibility**: Query ChromaDB with the latest user message to retrieve relevant coaching resources, frameworks, or past session insights.
+**Responsibility**: Query pgvector with the latest user message to retrieve relevant coaching resources, frameworks, or past session insights.
 
 **Implementation**:
 ```python
-collection = chroma_client.get_collection(f"{state['tenant_id']}_resources")
-results = collection.query(
-    query_texts=[last_user_message],
-    n_results=3
+results = await mcp_client.call_tool(
+    "pgvector_query_methodology_docs",
+    {"tenant_id": state["tenant_id"], "query": last_user_message, "n_results": 3}
 )
-state["retrieved_resources"] = results["documents"][0]
+state["retrieved_resources"] = results
 ```
 
 **Output**: Populates `state.retrieved_resources`

@@ -40,7 +40,7 @@ Energize is a multi-tenant AI-powered professional coaching platform. It connect
 | Component | Technology | Responsibility |
 |---|---|---|
 | Relational Store | PostgreSQL 16 | Users, tenants, sessions, messages |
-| Vector Store | ChromaDB | Coaching resource embeddings (RAG) |
+| Vector Store | pgvector (PostgreSQL) | Coaching resource embeddings (RAG) |
 | Migrations | Alembic | Schema versioning |
 | Multi-tenancy | App-layer filter | All queries scoped by `tenant_id` |
 
@@ -49,7 +49,7 @@ Energize is a multi-tenant AI-powered professional coaching platform. It connect
 |---|---|---|
 | LLM Client | LangChain-OpenAI | GPT-4o calls via OpenAI API |
 | Privacy Guard | Custom preprocessor | Strip/anonymise PII before LLM call |
-| Embedding Pipeline | OpenAI Embeddings | Convert documents → vectors for ChromaDB |
+| Embedding Pipeline | OpenAI Embeddings | Convert documents → vectors for pgvector |
 
 ### Layer 6 – Infrastructure & Deployment
 | Component | Technology | Responsibility |
@@ -79,10 +79,10 @@ Energize is a multi-tenant AI-powered professional coaching platform. It connect
 ╠══════════════════════════════════════╪═══════════════════════╣
 ║  Data Boundary: Internal network only║                        ║
 ║                       ┌─────────────▼─────────────────────┐  ║
-║                       │  PostgreSQL  │  ChromaDB           │  ║
-║                       │  (per-tenant │  (per-tenant        │  ║
-║                       │   filtering) │   collections)      │  ║
-║                       └─────────────────────────────────────┘  ║
+║                       │        PostgreSQL (+ pgvector)        │  ║
+║                       │  per-tenant row filtering + vector    │  ║
+║                       │  similarity search in same DB         │  ║
+║                       └───────────────────────────────────────┘  ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  External API Boundary: OpenAI (anonymised data only)        ║
 ╚══════════════════════════════════════════════════════════════╝
@@ -131,7 +131,7 @@ User Browser          Frontend            Keycloak            Backend
 ## 5. Chat Session Flow
 
 ```
-Client Browser    Frontend WS Mgr    Backend WS     LangGraph Agent    ChromaDB    OpenAI
+Client Browser    Frontend WS Mgr    Backend WS     LangGraph Agent   pgvector    OpenAI
       │                 │                │                │                │           │
       │  Send message   │                │                │                │           │
       │────────────────▶│                │                │                │           │
@@ -174,7 +174,7 @@ Client Browser    Frontend WS Mgr    Backend WS     LangGraph Agent    ChromaDB 
 | JWT | `tenant_id` claim extracted from Keycloak token |
 | API | `get_tenant_id()` FastAPI dependency; injected into every handler |
 | PostgreSQL | All queries include `WHERE tenant_id = :tenant_id` filter |
-| ChromaDB | Collections named `{tenant_id}_resources`; no cross-tenant queries |
+| pgvector | All vector queries include `tenant_id` filter; no cross-tenant queries |
 | Agent State | `CoachingState.tenant_id` passed through entire graph |
 | File uploads | (future) S3 prefix keyed by tenant |
 
@@ -208,6 +208,6 @@ The `coaching_node` receives `state.messages` which contain only conversation te
                                           │
                           ┌───────────────┼───────────────┐
                           │               │               │
-                    [PostgreSQL]    [ChromaDB]      [OpenAI API]
-                     :5432           :8000           (external)
+                    [PostgreSQL + pgvector]      [OpenAI API]
+                          :5432                     (external)
 ```

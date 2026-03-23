@@ -128,8 +128,8 @@ npm run dev                         # http://localhost:3000
 | `KEYCLOAK_REALM` | backend | Keycloak realm name |
 | `KEYCLOAK_CLIENT_ID` | backend | Backend client ID |
 | `OPENAI_API_KEY` | backend | OpenAI API key |
-| `CHROMA_HOST` | backend | ChromaDB hostname |
-| `CHROMA_PORT` | backend | ChromaDB port |
+| `EMBEDDING_MODEL` | backend | Embedding model (auto-resolved from `LLM_PROVIDER`) |
+| `EMBEDDING_DIMENSIONS` | backend | Vector dimensions (1536 openai, 768 google, 1024 mistral) |
 | `NEXT_PUBLIC_KEYCLOAK_URL` | frontend | Keycloak URL (browser) |
 | `NEXT_PUBLIC_KEYCLOAK_REALM` | frontend | Keycloak realm |
 | `NEXT_PUBLIC_KEYCLOAK_CLIENT_ID` | frontend | Frontend client ID |

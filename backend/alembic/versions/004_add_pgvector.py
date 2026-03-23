@@ -24,7 +24,7 @@ from sqlalchemy.dialects.postgresql import JSONB, UUID
 
 # ── revision identifiers ──────────────────────────────────────────────────────
 revision = "004"
-down_revision = "003"
+down_revision = "003_add_methodology_documents"
 branch_labels = None
 depends_on = None
 

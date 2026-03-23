@@ -16,8 +16,6 @@ All functions are intentionally synchronous (mirrors the original chroma.py
 contract).  asyncpg is used under the hood via a short-lived sync wrapper so
 we don't need a separate sync engine.
 """
-from __future__ import annotations
-
 import json
 import logging
 from typing import Optional
