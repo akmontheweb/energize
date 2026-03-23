@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chromadb
+  namespace: energize
+  labels:
+    app.kubernetes.io/name: chromadb
+    app.kubernetes.io/component: vector-store
+    app.kubernetes.io/part-of: energize
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: chromadb
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: chromadb
+        app.kubernetes.io/component: vector-store
+    spec:
+      containers:
+        - name: chromadb
+          image: chromadb/chroma:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          env:
+            - name: IS_PERSISTENT
+              value: "TRUE"
+            - name: ANONYMIZED_TELEMETRY
+              value: "FALSE"
+            - name: CHROMA_SERVER_HOST
+              value: "0.0.0.0"
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 4
+          readinessProbe:
+            httpGet:
+              path: /api/v1/heartbeat
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /chroma/chroma
+      volumes:
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: chromadb-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chromadb-pvc
+  namespace: energize
+  labels:
+    app.kubernetes.io/name: chromadb
+    app.kubernetes.io/component: vector-store
+    app.kubernetes.io/part-of: energize
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

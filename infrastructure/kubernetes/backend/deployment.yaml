@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: energize
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: energize
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend
+        app.kubernetes.io/component: api
+    spec:
+      containers:
+        - name: backend
+          image: energize/backend:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          env:
+            - name: DATABASE_URL
+              value: postgresql://energize:$(POSTGRES_PASSWORD)@postgres.energize.svc.cluster.local:5432/energize
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: energize-secrets
+                  key: POSTGRES_PASSWORD
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: energize-secrets
+                  key: OPENAI_API_KEY
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: energize-secrets
+                  key: KEYCLOAK_CLIENT_SECRET
+            - name: CHROMA_HOST
+              value: chromadb.energize.svc.cluster.local
+            - name: CHROMA_PORT
+              value: "8000"
+            - name: KEYCLOAK_URL
+              value: http://keycloak.energize.svc.cluster.local:8080
+            - name: KEYCLOAK_REALM
+              value: energize
+            - name: KEYCLOAK_CLIENT_ID
+              value: energize-backend
+            - name: APP_ENV
+              value: production
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 4
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3

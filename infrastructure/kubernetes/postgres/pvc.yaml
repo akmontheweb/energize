@@ -1,0 +1,18 @@
+# Note: When using a StatefulSet with volumeClaimTemplates (deployment.yaml),
+# Kubernetes creates PVCs automatically. This standalone PVC is kept for
+# reference or for use with a plain Deployment instead of a StatefulSet.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: energize
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: energize
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
